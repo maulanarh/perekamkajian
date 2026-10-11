@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Catatan Kajian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<style>
+:root{
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#eef2ee;--surface:#fbfcfa;--ink:#17302a;--muted:#5d726b;--line:#d3ddd6;--brand:#1f5b4b;--brand-ink:#fff;--rec:#c4382f;--gold:#9a6b14;
+  --ui:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;--read:'Literata',Georgia,'Times New Roman',serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1b17;--surface:#16261f;--ink:#e4efe9;--muted:#8fa79c;--line:#27403a;--brand:#4fb08f;--brand-ink:#08201a;--rec:#e5584d;--gold:#d9a443}}
+:root[data-theme="dark"]{--bg:#0f1b17;--surface:#16261f;--ink:#e4efe9;--muted:#8fa79c;--line:#27403a;--brand:#4fb08f;--brand-ink:#08201a;--rec:#e5584d;--gold:#d9a443}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--ui)}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+h1{font:600 1.7rem/1.2 var(--read);margin:8px 0 2px}
+.sub{color:var(--muted);margin:0 0 18px;font-size:.95rem}
+nav{display:flex;gap:22px;border-bottom:1px solid var(--line);margin-bottom:18px}
+nav button{background:none;border:0;padding:10px 0;font:500 1rem var(--ui);color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+nav button[aria-selected="true"]{color:var(--ink);border-color:var(--brand)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid .full{grid-column:1/-1}
+@media(max-width:520px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;font:400 1rem var(--ui);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.recbar{display:flex;align-items:center;gap:16px;margin:18px 0}
+#rec{width:76px;height:76px;flex:none;border-radius:50%;border:0;background:var(--rec);color:#fff;cursor:pointer;display:grid;place-items:center;box-shadow:0 0 0 0 transparent;transition:box-shadow .2s}
+#rec[aria-pressed="true"]{animation:ring 1.6s ease-out infinite}
+#rec svg{width:32px;height:32px}
+@keyframes ring{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--rec) 55%,transparent)}100%{box-shadow:0 0 0 22px transparent}}
+@media(prefers-reduced-motion:reduce){#rec[aria-pressed="true"]{animation:none;box-shadow:0 0 0 6px color-mix(in srgb,var(--rec) 35%,transparent)}}
+.timer{font:600 1.5rem var(--ui);font-variant-numeric:tabular-nums}
+.status{color:var(--muted);font-size:.9rem}
+#text{font:400 1.05rem/1.75 var(--read);min-height:300px;resize:vertical}
+#interim{color:var(--muted);font:italic 400 .95rem/1.5 var(--read);min-height:1.5em;margin:6px 0 0}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.btn{font:500 .95rem var(--ui);border-radius:8px;padding:10px 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn.danger{color:var(--rec)}
+.msg{margin:12px 0 0;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:.92rem;display:none}
+.msg.show{display:block}.msg.err{border-color:var(--rec);color:var(--rec)}
+.note{padding:14px 16px;margin-bottom:12px}
+.note h3{margin:0 0 2px;font:600 1.1rem/1.3 var(--read)}
+.meta{color:var(--gold);font-size:.88rem;margin-bottom:6px}
+.snip{color:var(--muted);font:400 .95rem/1.6 var(--read);margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.empty{text-align:center;color:var(--muted);padding:36px 12px}
+.bar{display:flex;gap:10px;margin-bottom:14px}
+.bar input{flex:1}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>Catatan Kajian</h1>
+  <p class="sub">Rekam kajian, suara jadi teks, lalu simpan.</p>
+
+  <nav role="tablist">
+    <button role="tab" id="t-rec" aria-selected="true">Rekam</button>
+    <button role="tab" id="t-list" aria-selected="false">Tersimpan (<span id="count">0</span>)</button>
+  </nav>
+
+  <section id="v-rec">
+    <div class="card">
+      <div class="grid">
+        <div class="full"><label for="title">Judul / tema kajian</label><input id="title" placeholder="Contoh: Adab menuntut ilmu"></div>
+        <div><label for="ustadz">Ustadz</label><input id="ustadz" placeholder="Nama ustadz"></div>
+        <div><label for="place">Tempat</label><input id="place" placeholder="Masjid / majelis"></div>
+        <div><label for="date">Tanggal</label><input id="date" type="date"></div>
+        <div><label for="lang">Bahasa suara</label>
+          <select id="lang"><option value="id-ID">Indonesia</option><option value="ar-SA">Arab</option><option value="en-US">Inggris</option><option value="jv-ID">Jawa</option></select></div>
+      </div>
+
+      <div class="recbar">
+        <button id="rec" aria-pressed="false" aria-label="Mulai merekam">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4Zm-6-4a1 1 0 1 0-2 0 8 8 0 0 0 7 7.94V21H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.06A8 8 0 0 0 20 11a1 1 0 1 0-2 0 6 6 0 0 1-12 0Z"/></svg>
+        </button>
+        <div><div class="timer" id="timer">00:00</div><div class="status" id="status">Siap merekam</div></div>
+      </div>
+
+      <label for="text">Catatan (bisa diedit kapan saja)</label>
+      <textarea id="text" placeholder="Teks hasil rekaman muncul di sini. Anda juga bisa mengetik catatan sendiri."></textarea>
+      <p id="interim" aria-live="polite"></p>
+
+      <div class="row">
+        <button class="btn primary" id="save">Simpan catatan</button>
+        <button class="btn" id="copy">Salin teks</button>
+        <button class="btn" id="new">Catatan baru</button>
+      </div>
+      <p class="msg" id="msg" role="status"></p>
+    </div>
+  </section>
+
+  <section id="v-list" hidden>
+    <div class="bar"><input id="q" type="search" placeholder="Cari judul, ustadz, atau isi catatan"></div>
+    <div id="list"></div>
+    <div class="row" id="listActions" hidden><button class="btn" id="copyAll">Salin semua catatan</button></div>
+    <p class="msg" id="msg2" role="status"></p>
+  </section>
+</main>
+
+<script>
+(function(){
+  var KEY='catatan-kajian-v1';
+  var $=function(id){return document.getElementById(id)};
+  var notes=[],currentId=null,recording=false,rec=null,seconds=0,tick=null,wake=null;
+
+  function load(){try{notes=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){notes=[]}}
+  function persist(){try{localStorage.setItem(KEY,JSON.stringify(notes));return true}catch(e){return false}}
+  function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function fmtDate(s){if(!s)return'';var p=s.split('-');var d=new Date(+p[0],+p[1]-1,+p[2]);return d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+  function flash(el,text,err){el.textContent=text;el.className='msg show'+(err?' err':'');clearTimeout(el._t);el._t=setTimeout(function(){el.className='msg'},err?9000:3000)}
+
+  /* tabs */
+  function show(tab){
+    var r=tab==='rec';
+    $('v-rec').hidden=!r;$('v-list').hidden=r;
+    $('t-rec').setAttribute('aria-selected',r);$('t-list').setAttribute('aria-selected',!r);
+    if(!r)renderList();
+  }
+  $('t-rec').onclick=function(){show('rec')};
+  $('t-list').onclick=function(){show('list')};
+
+  /* speech */
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){$('rec').disabled=true;$('rec').style.opacity='.4';$('status').textContent='Browser ini belum mendukung suara ke teks. Buka di Chrome atau Edge; Anda tetap bisa mengetik.'}
+
+  function fmtTime(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+  function append(t){
+    var ta=$('text'),v=ta.value;
+    t=t.trim();if(!t)return;
+    t=t.charAt(0).toUpperCase()+t.slice(1);
+    ta.value=v+(v&&!/\s$/.test(v)?' ':'')+t;
+    ta.scrollTop=ta.scrollHeight;
+  }
+  function startRec(){
+    rec=new SR();rec.lang=$('lang').value;rec.continuous=true;rec.interimResults=true;
+    rec.onresult=function(e){
+      var interim='';
+      for(var i=e.resultIndex;i<e.results.length;i++){
+        if(e.results[i].isFinal)append(e.results[i][0].transcript);else interim+=e.results[i][0].transcript;
+      }
+      $('interim').textContent=interim;
+    };
+    rec.onerror=function(e){
+      if(e.error==='no-speech'||e.error==='aborted')return;
+      if(e.error==='not-allowed'||e.error==='service-not-allowed'){stopRec();flash($('msg'),'Izin mikrofon ditolak. Izinkan mikrofon di pengaturan browser, atau buka halaman ini langsung di Chrome.',true)}
+      else if(e.error==='network'){stopRec();flash($('msg'),'Suara ke teks butuh internet. Periksa koneksi lalu coba lagi.',true)}
+      else{flash($('msg'),'Gagal merekam ('+e.error+').',true)}
+    };
+    rec.onend=function(){ /* browser menghentikan otomatis saat hening; sambung lagi */
+      $('interim').textContent='';
+      if(recording){setTimeout(function(){if(recording){try{rec.start()}catch(e){}}},250)}
+    };
+    try{rec.start()}catch(e){}
+  }
+  async function lockScreen(){try{if(navigator.wakeLock)wake=await navigator.wakeLock.request('screen')}catch(e){}}
+  function toggle(){
+    if(recording){stopRec();return}
+    recording=true;seconds=0;
+    $('rec').setAttribute('aria-pressed','true');$('rec').setAttribute('aria-label','Hentikan rekaman');
+    $('status').textContent='Merekam… bicara dengan jelas, dekatkan HP ke ustadz';
+    $('timer').textContent='00:00';
+    tick=setInterval(function(){seconds++;$('timer').textContent=fmtTime(seconds)},1000);
+    lockScreen();startRec();
+  }
+  function stopRec(){
+    recording=false;clearInterval(tick);
+    try{rec&&rec.stop()}catch(e){}
+    try{wake&&wake.release();wake=null}catch(e){}
+    $('rec').setAttribute('aria-pressed','false');$('rec').setAttribute('aria-label','Mulai merekam');
+    $('status').textContent='Rekaman dihentikan ('+fmtTime(seconds)+'). Periksa teks lalu simpan.';
+    $('interim').textContent='';
+  }
+  $('rec').onclick=toggle;
+  document.addEventListener('visibilitychange',function(){if(recording&&document.visibilityState==='visible')lockScreen()});
+
+  /* editor */
+  function reset(){
+    if(recording)stopRec();
+    currentId=null;['title','ustadz','place','text'].forEach(function(i){$(i).value=''});
+    $('date').value=today();$('timer').textContent='00:00';$('status').textContent='Siap merekam';
+  }
+  function toText(n){
+    return [n.title||'(Tanpa judul)', n.ustadz?'Ustadz: '+n.ustadz:'', n.place?'Tempat: '+n.place:'', n.date?'Tanggal: '+fmtDate(n.date):'','',n.text].filter(function(x,i){return x!==''||i===4}).join('\n');
+  }
+  function copy(text,el){
+    function fb(){var t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}document.body.removeChild(t);flash(el,ok?'Tersalin ke clipboard.':'Gagal menyalin. Blok teks lalu salin manual.',!ok)}
+    try{navigator.clipboard.writeText(text).then(function(){flash(el,'Tersalin ke clipboard.')},fb)}catch(e){fb()}
+  }
+  $('save').onclick=function(){
+    var text=$('text').value.trim();
+    if(!text&&!$('title').value.trim()){flash($('msg'),'Isi judul atau catatan dulu sebelum menyimpan.',true);return}
+    if(recording)stopRec();
+    var n={id:currentId||String(Date.now()),title:$('title').value.trim(),ustadz:$('ustadz').value.trim(),place:$('place').value.trim(),date:$('date').value,text:text,updated:Date.now()};
+    var i=notes.findIndex(function(x){return x.id===n.id});
+    if(i>=0)notes[i]=n;else notes.unshift(n);
+    currentId=n.id;
+    flash($('msg'),persist()?'Catatan tersimpan.':'Penyimpanan browser tidak tersedia. Salin teks dan simpan di tempat lain.',!persist());
+    $('count').textContent=notes.length;
+  };
+  $('copy').onclick=function(){copy(toText({title:$('title').value,ustadz:$('ustadz').value,place:$('place').value,date:$('date').value,text:$('text').value}),$('msg'))};
+  $('new').onclick=reset;
+
+  /* list */
+  function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function renderList(){
+    var q=$('q').value.trim().toLowerCase();
+    var items=notes.filter(function(n){return !q||(n.title+' '+n.ustadz+' '+n.place+' '+n.text).toLowerCase().indexOf(q)>-1})
+      .sort(function(a,b){return (b.date||'').localeCompare(a.date||'')||b.updated-a.updated});
+    $('count').textContent=notes.length;
+    $('listActions').hidden=!notes.length;
+    if(!items.length){$('list').innerHTML='<div class="empty">'+(notes.length?'Tidak ada catatan yang cocok.':'Belum ada catatan. Buka tab Rekam untuk memulai kajian pertama.')+'</div>';return}
+    $('list').innerHTML=items.map(function(n){
+      return '<article class="card note" data-id="'+n.id+'"><h3>'+esc(n.title||'(Tanpa judul)')+'</h3>'
+        +'<div class="meta">'+esc([n.ustadz,n.place,fmtDate(n.date)].filter(Boolean).join(', '))+'</div>'
+        +'<p class="snip">'+esc(n.text)+'</p>'
+        +'<div class="row"><button class="btn" data-a="open">Buka</button><button class="btn" data-a="copy">Salin</button><button class="btn danger" data-a="del">Hapus</button></div></article>';
+    }).join('');
+  }
+  $('q').oninput=renderList;
+  $('list').onclick=function(e){
+    var b=e.target.closest('button');if(!b)return;
+    var id=b.closest('.note').dataset.id;
+    var n=notes.find(function(x){return x.id===id});if(!n)return;
+    if(b.dataset.a==='open'){
+      reset();currentId=n.id;$('title').value=n.title;$('ustadz').value=n.ustadz;$('place').value=n.place;$('date').value=n.date||today();$('text').value=n.text;show('rec');window.scrollTo(0,0);
+    }else if(b.dataset.a==='copy'){copy(toText(n),$('msg2'))}
+    else if(b.dataset.a==='del'){
+      if(b.dataset.arm){notes=notes.filter(function(x){return x.id!==id});if(currentId===id)currentId=null;persist();renderList();flash($('msg2'),'Catatan dihapus.')}
+      else{b.dataset.arm='1';b.textContent='Yakin hapus?';setTimeout(function(){b.dataset.arm='';b.textContent='Hapus'},3000)}
+    }
+  };
+  $('copyAll').onclick=function(){copy(notes.map(toText).join('\n\n----------\n\n'),$('msg2'))};
+
+  load();$('date').value=today();$('count').textContent=notes.length;
+})();
+</script>
+</body>
+</html>
