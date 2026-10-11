@@ -132,21 +132,33 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
   if(!SR){$('rec').disabled=true;$('rec').style.opacity='.4';$('status').textContent='Browser ini belum mendukung suara ke teks. Buka di Chrome atau Edge; Anda tetap bisa mengetik.'}
 
   function fmtTime(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
-  function append(t){
-    var ta=$('text'),v=ta.value;
-    t=t.trim();if(!t)return;
-    t=t.charAt(0).toUpperCase()+t.slice(1);
-    ta.value=v+(v&&!/\s$/.test(v)?' ':'')+t;
+  var base='',segs=[],pending='';
+  function norm(s){return s.toLowerCase().replace(/\s+/g,' ').trim()}
+  /* Chrome Android sering mengirim hasil kumulatif ("karena", "karena sesuai", ...) sebagai hasil final.
+     Solusi: simpan tiap segmen per indeks (ditimpa, bukan ditambah), lalu buang segmen yang hanya awalan dari segmen berikutnya. */
+  function render(){
+    var finals=[],interim='';
+    for(var i=0;i<segs.length;i++){
+      var s=segs[i];if(!s)continue;
+      var next=null;
+      for(var j=i+1;j<segs.length;j++){if(segs[j]){next=segs[j];break}}
+      if(next&&norm(next.t).indexOf(norm(s.t))===0)continue;
+      if(s.f)finals.push(s.t.trim());else interim+=' '+s.t.trim();
+    }
+    pending=interim.trim();
+    var joined=finals.join(' ').trim();
+    if(joined)joined=joined.charAt(0).toUpperCase()+joined.slice(1);
+    var ta=$('text');
+    ta.value=base+(base&&joined&&!/\s$/.test(base)?' ':'')+joined;
     ta.scrollTop=ta.scrollHeight;
+    $('interim').textContent=pending;
   }
   function startRec(){
     rec=new SR();rec.lang=$('lang').value;rec.continuous=true;rec.interimResults=true;
+    base=$('text').value;segs=[];pending='';
     rec.onresult=function(e){
-      var interim='';
-      for(var i=e.resultIndex;i<e.results.length;i++){
-        if(e.results[i].isFinal)append(e.results[i][0].transcript);else interim+=e.results[i][0].transcript;
-      }
-      $('interim').textContent=interim;
+      for(var i=0;i<e.results.length;i++){segs[i]={t:e.results[i][0].transcript,f:e.results[i].isFinal}}
+      render();
     };
     rec.onerror=function(e){
       if(e.error==='no-speech'||e.error==='aborted')return;
@@ -155,8 +167,9 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
       else{flash($('msg'),'Gagal merekam ('+e.error+').',true)}
     };
     rec.onend=function(){ /* browser menghentikan otomatis saat hening; sambung lagi */
+      if(pending){segs.push({t:pending,f:true});render()}
       $('interim').textContent='';
-      if(recording){setTimeout(function(){if(recording){try{rec.start()}catch(e){}}},250)}
+      if(recording){setTimeout(function(){if(recording)startRec()},250)}
     };
     try{rec.start()}catch(e){}
   }
